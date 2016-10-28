@@ -43,6 +43,7 @@ namespace BabyDoc
             // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbolKindMethod, SymbolKind.Method);
+            context.RegisterSymbolAction(AnalyzeSymbolKindProperty, SymbolKind.Property);
         }
 
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
@@ -52,77 +53,103 @@ namespace BabyDoc
             if (methodDeclarationSyntaxNode != null
                 && methodDeclarationSyntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
             {
-                // extract existing documentation summary (if any)
-                var existingDocumentation = methodDeclarationSyntaxNode
-                    .GetLeadingTrivia()
-                    .SingleOrDefault(x => x.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
+                AnalyzeWrappedSymbol(
+                    context,
+                    new BabyDocDiagnosticAdapter(methodDeclarationSyntaxNode, () => methodSymbol.Parameters, () => methodSymbol.ReturnType),
+                    BabyDocMethodDocumentationProvider.Create());
+            }
+        }
 
-                var matches = singleLineDocumentationCommentTriviaRegex.Matches(
-                    existingDocumentation != null
-                        ? SpanText(methodDeclarationSyntaxNode, existingDocumentation.FullSpan)
-                        : string.Empty);
 
-                var contentCaptures = matches.Count == 1
-                    ? matches[0].Groups["content"].Captures.OfType<Capture>().ToList()
-                    : new List<Capture>();
+        private static void AnalyzeSymbolKindProperty(SymbolAnalysisContext context)
+        {
+            var symbol = context.Symbol as IPropertySymbol;
+            var syntaxNode = symbol != null ? FindNode<PropertyDeclarationSyntax>(symbol) : null;
+            if (syntaxNode != null
+                && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
+            {
+                AnalyzeWrappedSymbol(
+                    context,
+                    new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.Type),
+                    BabyDocPropertyDocumentationProvider.Create());
+            }
+        }
 
-                var existingCommentXml = TryXmlParse(
-                    "<" + ElementNameComment + ">"
-                    + string.Join(string.Empty, contentCaptures.Select(x => x.ToString().Trim()))
-                    + "</" + ElementNameComment + ">");
+        private static void AnalyzeWrappedSymbol(
+            SymbolAnalysisContext context,
+            IBabyDocDiagnosticAdapter diagnosticAdapter,
+            IBabyDocDocumentationProvider documentationProvider)
+        {
+            var syntaxNode = diagnosticAdapter.SyntaxNode;
 
-                // add any missing documentation summary elements
-                var elementComment = existingCommentXml != null ? existingCommentXml.Element(ElementNameComment) : null;
+            // extract existing documentation summary (if any)
+            var existingDocumentation = syntaxNode
+                .GetLeadingTrivia()
+                .SingleOrDefault(x => x.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
 
-                // ... add missing documentation summary element - SUMMARY
-                var elementSummary = elementComment != null ? elementComment.Element(ElementNameSummary) : null;
-                if (elementSummary == null)
+            var matches = singleLineDocumentationCommentTriviaRegex.Matches(
+                existingDocumentation != null
+                    ? SpanText(syntaxNode, existingDocumentation.FullSpan)
+                    : string.Empty);
+
+            var contentCaptures = matches.Count == 1
+                ? matches[0].Groups["content"].Captures.OfType<Capture>().ToList()
+                : new List<Capture>();
+
+            var existingCommentXml = TryXmlParse(
+                "<" + ElementNameComment + ">"
+                + string.Join(string.Empty, contentCaptures.Select(x => x.ToString().Trim()))
+                + "</" + ElementNameComment + ">");
+
+            // add any missing documentation summary elements
+            var elementComment = existingCommentXml != null ? existingCommentXml.Element(ElementNameComment) : null;
+
+            // ... add missing documentation summary element - SUMMARY
+            var elementSummary = elementComment != null ? elementComment.Element(ElementNameSummary) : null;
+            if (elementSummary == null)
+            {
+                elementSummary = new XElement(ElementNameSummary, documentationProvider.SummaryText(context.Symbol));
+            }
+
+            // ... add missing documentation summary element - RETURNS
+            var elementReturns = elementComment != null ? elementComment.Element(ElementNameReturns) : null;
+            if (elementReturns == null)
+            {
+                var returnType = diagnosticAdapter.ReturnType;
+                elementReturns = new XElement(ElementNameReturns, documentationProvider.ReturnsText(returnType));
+            }
+
+            // ... add missing documentation summary element - REMARKS
+            var elementRemarks = elementComment != null ? elementComment.Element("remarks") : null;
+
+            // ... add missing documentation summary element - PARAM
+            var elementParams = (elementComment != null ? elementComment.Elements("param") : Enumerable.Empty<XElement>())
+                .Select(x => { var attr = x.Attribute("name"); return Tuple.Create(x, attr != null ? attr.Value : null); })
+                .Where(x => x.Item2 != null)
+                .ToArray();
+            var existingParamNames = new HashSet<string>(elementParams.Select(x => x.Item2).Distinct());
+
+            var parameters = diagnosticAdapter.Parameters.ToArray();
+            var newParams = parameters.Select(x =>
+            {
+                return existingParamNames.Contains(x.Name) ? elementParams.First(e => e.Item2 == x.Name).Item1 : new XElement("param", new XAttribute("name", x.Name)) { Value = "[" + x.Name + "]" };
+            }).ToArray();
+
+            if (!elementParams.Select(x => x.Item2).OrderBy(x => x).SequenceEqual(parameters.Select(x => x.Name).OrderBy(x => x)))
+            {
+                elementParams = parameters.Select(x =>
                 {
-                    elementSummary = new XElement(ElementNameSummary, string.Format("This method does [{0}]", methodSymbol.Name));
-                }
-
-                // ... add missing documentation summary element - RETURNS
-                var elementReturns = elementComment != null ? elementComment.Element(ElementNameReturns) : null;
-                if (elementReturns == null)
-                {
-                    elementReturns = new XElement(
-                        ElementNameReturns,
-                        methodSymbol.ReturnType.Name != null && !methodSymbol.ReturnType.Name.Equals("void", StringComparison.OrdinalIgnoreCase)
-                            ? "[" + methodSymbol.ReturnType.Name + "]"
-                            : string.Empty);
-                }
-
-                // ... add missing documentation summary element - REMARKS
-                var elementRemarks = elementComment != null ? elementComment.Element("remarks") : null;
-
-                // ... add missing documentation summary element - PARAM
-                var elementParams = (elementComment != null ? elementComment.Elements("param") : Enumerable.Empty<XElement>())
-                    .Select(x => { var attr = x.Attribute("name"); return Tuple.Create(x, attr != null ? attr.Value : null); })
-                    .Where(x => x.Item2 != null)
-                    .ToArray();
-                var existingParamNames = new HashSet<string>(elementParams.Select(x => x.Item2).Distinct());
-
-                var parameters = methodSymbol.Parameters.ToArray();
-                var newParams = parameters.Select(x =>
-                {
-                    return existingParamNames.Contains(x.Name) ? elementParams.First(e => e.Item2 == x.Name).Item1 : new XElement("param", new XAttribute("name", x.Name)) { Value = "[" + x.Name + "]" };
+                    return Tuple.Create(
+                        existingParamNames.Contains(x.Name)
+                            ? elementParams.First(e => e.Item2 == x.Name).Item1
+                            : new XElement("param", new XAttribute("name", x.Name)) { Value = documentationProvider.ParameterText(x) },
+                        x.Name);
                 }).ToArray();
+            }
 
-                if (!elementParams.Select(x => x.Item2).OrderBy(x => x).SequenceEqual(parameters.Select(x => x.Name).OrderBy(x => x)))
-                {
-                    elementParams = parameters.Select(x =>
-                    {
-                        return Tuple.Create(
-                            existingParamNames.Contains(x.Name)
-                                ? elementParams.First(e => e.Item2 == x.Name).Item1
-                                : new XElement("param", new XAttribute("name", x.Name)) { Value = string.Format("[{0}] of type [{1}]", x.Name, GetParameterTypeText(x)) },
-                            x.Name);
-                    }).ToArray();
-                }
-
-                // build expected documentation summary
-                var newCommentElements = new[]
-                {
+            // build expected documentation summary
+            var newCommentElements = new[]
+            {
                     new[]
                     {
                         elementSummary
@@ -133,32 +160,31 @@ namespace BabyDoc
                         elementReturns, elementRemarks
                     }
                 }
-                .SelectMany(x => x)
-                .Where(x => x != null)
-                .ToArray();
+            .SelectMany(x => x)
+            .Where(x => x != null)
+            .ToArray();
 
-                var newCommentXml = new XDocument(new XElement(ElementNameComment, newCommentElements));
+            var newCommentXml = new XDocument(new XElement(ElementNameComment, newCommentElements));
 
-                // compare existing and expected documentation summary
-                var newCommentXmlText = newCommentXml.ToString();
-                if (!existingCommentXml.ToString().Equals(newCommentXmlText, StringComparison.OrdinalIgnoreCase))
-                {
-                    // add diagnostic for unexpected documentation summary
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(
-                            Rule,
-                            methodSymbol.Locations[0],
-                            new[] { Tuple.Create(ElementNameComment, newCommentXmlText) }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
-                            methodSymbol.Name));
-                }
+            // compare existing and expected documentation summary
+            var newCommentXmlText = newCommentXml.ToString();
+            if (!existingCommentXml.ToString().Equals(newCommentXmlText, StringComparison.OrdinalIgnoreCase))
+            {
+                // add diagnostic for unexpected documentation summary
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        Rule,
+                        context.Symbol.Locations[0],
+                        new[] { Tuple.Create(ElementNameComment, newCommentXmlText) }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
+                        context.Symbol.Name));
             }
         }
 
-        private static string GetParameterTypeText(IParameterSymbol parameterSymbol)
-        {
-            var result = parameterSymbol.ToString();
-            return result;
-        }
+        ////private static string GetParameterTypeText(IParameterSymbol parameterSymbol)
+        ////{
+        ////    var result = parameterSymbol.ToString();
+        ////    return result;
+        ////}
 
         private static XDocument TryXmlParse(string text)
         {
@@ -178,7 +204,7 @@ namespace BabyDoc
                 .Select(syntaxReference => GetNodes(syntaxReference.SyntaxTree.GetRoot()).Where(node => node.Span == syntaxReference.Span))
                 .SelectMany(x => x)
                 .Select(x => x as T)
-                .Single(x => x != null);
+                .SingleOrDefault(x => x != null);
         }
 
         private static IEnumerable<SyntaxNode> GetNodes(SyntaxNode node)

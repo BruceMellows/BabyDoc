@@ -40,18 +40,18 @@ namespace BabyDoc
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                var methodDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
+                var synraxNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent.AncestorsAndSelf().OfType<SyntaxNode>().First();
 
                 context.RegisterCodeFix(
-                    CodeAction.Create(title, c => UpdateDocumentationAsync(context.Document, methodDeclaration, diagnostic.Properties, c)),
+                    CodeAction.Create(title, c => UpdateDocumentationAsync(context.Document, synraxNode, diagnostic.Properties, c)),
                     diagnostic);
             }
         }
 
-        private Task<Document> UpdateDocumentationAsync(Document document, MethodDeclarationSyntax methodDeclaration, ImmutableDictionary<string, string> diagnosticProperties, CancellationToken cancellationToken)
+        private Task<Document> UpdateDocumentationAsync(Document document, SyntaxNode syntaxNode, ImmutableDictionary<string, string> diagnosticProperties, CancellationToken cancellationToken)
         {
             var getRootTask = document.GetSyntaxRootAsync(cancellationToken);
-            var firstToken = methodDeclaration.GetFirstToken();
+            var firstToken = syntaxNode.GetFirstToken();
 
             if (firstToken == null)
             {
@@ -77,9 +77,9 @@ namespace BabyDoc
                         .Select(x => documentationCommentLeaderText + x))
                 + Environment.NewLine + indentText;
 
-            var newMethodDeclaration = methodDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(documentationCommentTriviaText)));
+            var newMethodDeclaration = syntaxNode.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(documentationCommentTriviaText)));
 
-            return getRootTask.ContinueWith(t => document.WithSyntaxRoot(t.Result.ReplaceNode(methodDeclaration, newMethodDeclaration)));
+            return getRootTask.ContinueWith(t => document.WithSyntaxRoot(t.Result.ReplaceNode(syntaxNode, newMethodDeclaration)));
         }
     }
 }

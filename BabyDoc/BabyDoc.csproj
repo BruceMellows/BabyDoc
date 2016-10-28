@@ -33,7 +33,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BabyDocCodeFixProvider.cs" />
+    <Compile Include="BabyDocDiagnosticAdapter.cs" />
     <Compile Include="BabyDocDiagnosticAnalyzer.cs" />
+    <Compile Include="DocumentationProvider\BabyDocDocumentationProvider.cs" />
+    <Compile Include="DocumentationProvider\BabyDocEmptyDocumentationProvider.cs" />
+    <Compile Include="DocumentationProvider\BabyDocMethodDocumentationProvider.cs" />
+    <Compile Include="DocumentationProvider\BabyDocPropertyDocumentationProvider.cs" />
+    <Compile Include="DocumentationProvider\BabyDocStandardDocumentationProvider.cs" />
+    <Compile Include="IBabyDocDiagnosticAdapter.cs" />
+    <Compile Include="DocumentationProvider\IBabyDocDocumentationProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
