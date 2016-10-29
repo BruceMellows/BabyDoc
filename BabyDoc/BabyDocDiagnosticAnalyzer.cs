@@ -47,38 +47,69 @@ namespace BabyDoc
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbolKindMethod, SymbolKind.Method);
             context.RegisterSymbolAction(AnalyzeSymbolKindProperty, SymbolKind.Property);
-            // FIXME - add constructor support
             // FIXME - add field support
+            ////context.RegisterSymbolAction(AnalyzeSymbolKindField, SymbolKind.Field);
         }
 
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
         {
             var symbol = context.Symbol as IMethodSymbol;
-            var syntaxNode = symbol != null ? symbol.FindNodes<MethodDeclarationSyntax>().SingleOrDefault() : null;
-            // FIXME - do not require modifier if interface
-            if (syntaxNode != null
-                && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
+            var methodNode = symbol != null ? symbol.FindNodes<MethodDeclarationSyntax>().SingleOrDefault() : null;
+            if (methodNode != null)
             {
-                AnalyzeWrappedSymbol(
-                    context,
-                    new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.ReturnType),
-                    BabyDocMethodDocumentationProvider.Create(syntaxNode));
+                if (methodNode != null
+                    && (symbol.ContainingType.TypeKind == TypeKind.Interface
+                        || methodNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))))
+                {
+                    AnalyzeWrappedSymbol(
+                        context,
+                        new BabyDocDiagnosticAdapter(methodNode, () => symbol.Parameters, () => symbol.ReturnType),
+                        BabyDocMethodDocumentationProvider.Create(methodNode));
+                }
+            }
+            else
+            {
+                var constructorNode = symbol != null ? symbol.FindNodes<ConstructorDeclarationSyntax>().SingleOrDefault() : null;
+                if (constructorNode != null
+                    && (symbol.ContainingType.TypeKind == TypeKind.Interface
+                        || constructorNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))))
+                {
+                    AnalyzeWrappedSymbol(
+                        context,
+                        new BabyDocDiagnosticAdapter(constructorNode, () => symbol.Parameters, () => symbol.ReturnType),
+                        BabyDocConstructorDocumentationProvider.Create(constructorNode));
+                }
             }
         }
-
 
         private static void AnalyzeSymbolKindProperty(SymbolAnalysisContext context)
         {
             var symbol = context.Symbol as IPropertySymbol;
             var syntaxNode = symbol != null ? symbol.FindNodes<PropertyDeclarationSyntax>().SingleOrDefault() : null;
-            // FIXME - do not require modifier if interface
             if (syntaxNode != null
-                && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
+                && (symbol.ContainingType.TypeKind == TypeKind.Interface
+                    || syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))))
             {
                 AnalyzeWrappedSymbol(
                     context,
                     new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.Type),
                     BabyDocPropertyDocumentationProvider.Create(syntaxNode));
+            }
+        }
+
+        private static void AnalyzeSymbolKindField(SymbolAnalysisContext context)
+        {
+            //// FIXME - a bit of a mess
+            var symbol = context.Symbol as IFieldSymbol;
+            var nodes = symbol.FindNodes<SyntaxNode>().ToArray();
+            var syntaxNode = symbol != null ? symbol.FindNodes<VariableDeclaratorSyntax>().SingleOrDefault() : null;
+            if (syntaxNode != null
+                /*&& syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))*/)
+            {
+                AnalyzeWrappedSymbol(
+                    context,
+                    new BabyDocDiagnosticAdapter(syntaxNode, () => Enumerable.Empty<ISymbol>(), () => symbol.Type),
+                    BabyDocFieldDocumentationProvider.Create(syntaxNode));
             }
         }
 
@@ -122,8 +153,8 @@ namespace BabyDoc
             var elementReturns = elementComment != null ? elementComment.Element(ElementNameReturns) : null;
             if (elementReturns == null)
             {
-                var returnType = diagnosticAdapter.ReturnType;
-                elementReturns = new XElement(ElementNameReturns, documentationProvider.ReturnsText(returnType));
+                var returnsText = documentationProvider.ReturnsText(diagnosticAdapter.ReturnType);
+                elementReturns = returnsText != null ? new XElement(ElementNameReturns, returnsText) : null;
             }
 
             // ... add missing documentation summary element - REMARKS
@@ -144,14 +175,20 @@ namespace BabyDoc
 
             if (!elementParams.Select(x => x.Item2).OrderBy(x => x).SequenceEqual(parameters.Select(x => x.Name).OrderBy(x => x)))
             {
-                elementParams = parameters.Select(x =>
-                {
-                    return Tuple.Create(
-                        existingParamNames.Contains(x.Name)
-                            ? elementParams.First(e => e.Item2 == x.Name).Item1
-                            : new XElement("param", new XAttribute("name", x.Name)) { Value = documentationProvider.ParameterText(x) },
-                        x.Name);
-                }).ToArray();
+                elementParams = parameters
+                    .Select(x =>
+                    {
+                        var parameterText = documentationProvider.ParameterText(x);
+                        return parameterText != null
+                            ? Tuple.Create(
+                                existingParamNames.Contains(x.Name)
+                                    ? elementParams.First(e => e.Item2 == x.Name).Item1
+                                    : new XElement("param", new XAttribute("name", x.Name)) { Value = parameterText },
+                                x.Name)
+                            : null;
+                    })
+                    .Where(x => x != null)
+                    .ToArray();
             }
 
             // build expected documentation summary
@@ -186,12 +223,6 @@ namespace BabyDoc
                         context.Symbol.Name));
             }
         }
-
-        ////private static string GetParameterTypeText(IParameterSymbol parameterSymbol)
-        ////{
-        ////    var result = parameterSymbol.ToString();
-        ////    return result;
-        ////}
 
         private static XDocument TryXmlParse(string text)
         {

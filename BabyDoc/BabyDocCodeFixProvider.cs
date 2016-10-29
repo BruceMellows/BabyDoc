@@ -77,7 +77,11 @@ namespace BabyDoc
                         .Select(x => documentationCommentLeaderText + x))
                 + Environment.NewLine + indentText;
 
-            var newMethodDeclaration = syntaxNode.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(documentationCommentTriviaText)));
+            var newMethodDeclaration = syntaxNode.ReplaceToken(
+                firstToken,
+                firstToken.WithLeadingTrivia(
+                    SyntaxFactory.ParseLeadingTrivia(documentationCommentTriviaText)
+                    .Insert(0, SyntaxFactory.LineFeed)));
 
             return getRootTask.ContinueWith(t => document.WithSyntaxRoot(t.Result.ReplaceNode(syntaxNode, newMethodDeclaration)));
         }

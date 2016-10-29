@@ -9,7 +9,7 @@ namespace BabyDoc
     using Microsoft.CodeAnalysis;
     using System;
 
-    internal sealed class BabyDocStandardDocumentationProvider
+    internal sealed class BabyDocReturnsTextDocumentationProvider
     {
         /// <summary>This method does [Create]</summary>
         /// <returns>[IBabyDocDocumentationProvider]</returns>
@@ -20,13 +20,6 @@ namespace BabyDoc
 
         private sealed class ActualProvider : BabyDocEmptyDocumentationProvider
         {
-            /// <summary>This method does [ParameterText]</summary>
-            /// <param name="parameterSymbol">[parameterSymbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
-            /// <returns>[String]</returns>
-            public override string ParameterText(ISymbol parameterSymbol)
-            {
-                return string.Format("[{0}] of type [{1}]", parameterSymbol.Name, parameterSymbol.ToString());
-            }
             /// <summary>This method does [ReturnsText]</summary>
             /// <param name="returnTypeSymbol">[returnTypeSymbol] of type [Microsoft.CodeAnalysis.ITypeSymbol]</param>
             /// <returns>[String]</returns>

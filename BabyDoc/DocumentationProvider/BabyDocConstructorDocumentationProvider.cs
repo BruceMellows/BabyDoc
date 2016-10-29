@@ -10,24 +10,22 @@ namespace BabyDoc
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Globalization;
 
-    internal sealed class BabyDocMethodDocumentationProvider
+    internal sealed class BabyDocConstructorDocumentationProvider
     {
         /// <summary>This method does [Create]</summary>
         /// <param name="syntaxNode">[syntaxNode] of type [Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax]</param>
         /// <returns>[IBabyDocDocumentationProvider]</returns>
-        public static IBabyDocDocumentationProvider Create(MethodDeclarationSyntax syntaxNode)
+        public static IBabyDocDocumentationProvider Create(ConstructorDeclarationSyntax syntaxNode)
         {
-            return new BabyDocDocumentationProvider(
-                new ActualProvider(syntaxNode),
-                BabyDocReturnsTextDocumentationProvider.Create(),
+            return new BabyDocDocumentationProvider(new ActualProvider(syntaxNode),
                 BabyDocParameterTextDocumentationProvider.Create());
         }
 
         private sealed class ActualProvider : BabyDocEmptyDocumentationProvider
         {
-            private readonly MethodDeclarationSyntax syntaxNode;
+            private readonly ConstructorDeclarationSyntax syntaxNode;
 
-            public ActualProvider(MethodDeclarationSyntax syntaxNode)
+            public ActualProvider(ConstructorDeclarationSyntax syntaxNode)
             {
                 this.syntaxNode = syntaxNode;
             }
@@ -36,7 +34,7 @@ namespace BabyDoc
             /// <returns>[String]</returns>
             public override string SummaryText(ISymbol symbol)
             {
-                return string.Format(CultureInfo.InvariantCulture, "This method does [{0}]", symbol.Name);
+                return string.Format(CultureInfo.InvariantCulture, "Constructor for [{0}]", this.syntaxNode.Identifier.Text);
             }
         }
     }

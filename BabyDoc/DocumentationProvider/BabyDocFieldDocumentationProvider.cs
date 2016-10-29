@@ -7,29 +7,24 @@
 namespace BabyDoc
 {
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System.Globalization;
-    using System.Linq;
 
-    internal sealed class BabyDocPropertyDocumentationProvider
+    internal sealed class BabyDocFieldDocumentationProvider
     {
         /// <summary>This method does [Create]</summary>
         /// <param name="syntaxNode">[syntaxNode] of type [Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax]</param>
         /// <returns>[IBabyDocDocumentationProvider]</returns>
-        public static IBabyDocDocumentationProvider Create(PropertyDeclarationSyntax syntaxNode)
+        public static IBabyDocDocumentationProvider Create(VariableDeclaratorSyntax syntaxNode)
         {
-            return new BabyDocDocumentationProvider(
-                new ActualProvider(syntaxNode),
-                BabyDocReturnsTextDocumentationProvider.Create(),
-                BabyDocParameterTextDocumentationProvider.Create());
+            return new BabyDocDocumentationProvider(new ActualProvider(syntaxNode));
         }
 
         private sealed class ActualProvider : BabyDocEmptyDocumentationProvider
         {
-            private readonly PropertyDeclarationSyntax syntaxNode;
+            private readonly VariableDeclaratorSyntax syntaxNode;
 
-            public ActualProvider(PropertyDeclarationSyntax syntaxNode)
+            public ActualProvider(VariableDeclaratorSyntax syntaxNode)
             {
                 this.syntaxNode = syntaxNode;
             }
@@ -38,12 +33,7 @@ namespace BabyDoc
             /// <returns>[String]</returns>
             public override string SummaryText(ISymbol symbol)
             {
-                var accessors = this.syntaxNode.AccessorList.Accessors
-                    .Where(a => a.Modifiers.All(m => !m.IsKind(SyntaxKind.PrivateKeyword)))
-                    .ToArray();
-                var hasGet = accessors.Any(x => x.IsKind(SyntaxKind.GetAccessorDeclaration));
-                var hasSet = accessors.Any(x => x.IsKind(SyntaxKind.SetAccessorDeclaration));
-                return string.Format(CultureInfo.InvariantCulture, (!hasGet || !hasSet) ? !hasGet ? "Sets the [{0}]" : "Gets the [{0}]" : "Gets or sets the [{0}]", symbol.Name);
+                return string.Format(CultureInfo.InvariantCulture, "The [{0}]", symbol.Name);
             }
         }
     }

@@ -8,7 +8,8 @@ It offers to add documentation summary for externally visible methods and proper
 ## Todo
 
 * Trying to provide sensible text - want to externalise this features content
+* Add field support
 
 ## Issues
 
-* Removes trivia when inserting the updated documentation
+* Does not preserve leading trivia properly when inserting the updated documentation
