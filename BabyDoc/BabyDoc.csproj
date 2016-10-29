@@ -35,6 +35,7 @@
     <Compile Include="BabyDocCodeFixProvider.cs" />
     <Compile Include="BabyDocDiagnosticAdapter.cs" />
     <Compile Include="BabyDocDiagnosticAnalyzer.cs" />
+    <Compile Include="CodeAnalysisExtensions.cs" />
     <Compile Include="DocumentationProvider\BabyDocDocumentationProvider.cs" />
     <Compile Include="DocumentationProvider\BabyDocEmptyDocumentationProvider.cs" />
     <Compile Include="DocumentationProvider\BabyDocMethodDocumentationProvider.cs" />

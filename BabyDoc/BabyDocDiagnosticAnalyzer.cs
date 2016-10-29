@@ -48,15 +48,15 @@ namespace BabyDoc
 
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
         {
-            var methodSymbol = context.Symbol as IMethodSymbol;
-            var methodDeclarationSyntaxNode = methodSymbol != null ? FindNode<MethodDeclarationSyntax>(methodSymbol) : null;
-            if (methodDeclarationSyntaxNode != null
-                && methodDeclarationSyntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
+            var symbol = context.Symbol as IMethodSymbol;
+            var syntaxNode = symbol != null ? symbol.FindNodes<MethodDeclarationSyntax>().SingleOrDefault() : null;
+            if (syntaxNode != null
+                && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
             {
                 AnalyzeWrappedSymbol(
                     context,
-                    new BabyDocDiagnosticAdapter(methodDeclarationSyntaxNode, () => methodSymbol.Parameters, () => methodSymbol.ReturnType),
-                    BabyDocMethodDocumentationProvider.Create());
+                    new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.ReturnType),
+                    BabyDocMethodDocumentationProvider.Create(syntaxNode));
             }
         }
 
@@ -64,14 +64,14 @@ namespace BabyDoc
         private static void AnalyzeSymbolKindProperty(SymbolAnalysisContext context)
         {
             var symbol = context.Symbol as IPropertySymbol;
-            var syntaxNode = symbol != null ? FindNode<PropertyDeclarationSyntax>(symbol) : null;
+            var syntaxNode = symbol != null ? symbol.FindNodes<PropertyDeclarationSyntax>().SingleOrDefault() : null;
             if (syntaxNode != null
                 && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
             {
                 AnalyzeWrappedSymbol(
                     context,
                     new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.Type),
-                    BabyDocPropertyDocumentationProvider.Create());
+                    BabyDocPropertyDocumentationProvider.Create(syntaxNode));
             }
         }
 
@@ -89,7 +89,7 @@ namespace BabyDoc
 
             var matches = singleLineDocumentationCommentTriviaRegex.Matches(
                 existingDocumentation != null
-                    ? SpanText(syntaxNode, existingDocumentation.FullSpan)
+                    ? syntaxNode.SpanText(existingDocumentation.FullSpan)
                     : string.Empty);
 
             var contentCaptures = matches.Count == 1
@@ -190,34 +190,6 @@ namespace BabyDoc
         {
             try { return XDocument.Parse(text); }
             catch { return null; }
-        }
-
-        private static string SpanText(SyntaxNode node, Microsoft.CodeAnalysis.Text.TextSpan span)
-        {
-            var root = node.Ancestors().LastOrDefault() ?? node;
-            return root.GetText().ToString().Substring(span.Start, span.Length);
-        }
-
-        private static T FindNode<T>(ISymbol symbol) where T : SyntaxNode
-        {
-            return symbol.DeclaringSyntaxReferences
-                .Select(syntaxReference => GetNodes(syntaxReference.SyntaxTree.GetRoot()).Where(node => node.Span == syntaxReference.Span))
-                .SelectMany(x => x)
-                .Select(x => x as T)
-                .SingleOrDefault(x => x != null);
-        }
-
-        private static IEnumerable<SyntaxNode> GetNodes(SyntaxNode node)
-        {
-            yield return node;
-
-            foreach (var childNode in node.ChildNodes())
-            {
-                foreach (var item in GetNodes(childNode))
-                {
-                    yield return item;
-                }
-            }
         }
     }
 }
