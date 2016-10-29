@@ -14,6 +14,9 @@ namespace BabyDoc
 
     internal sealed class BabyDocPropertyDocumentationProvider
     {
+        /// <summary>This method does [Create]</summary>
+        /// <param name="syntaxNode">[syntaxNode] of type [Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax]</param>
+        /// <returns>[IBabyDocDocumentationProvider]</returns>
         public static IBabyDocDocumentationProvider Create(PropertyDeclarationSyntax syntaxNode)
         {
             return new BabyDocDocumentationProvider(new ActualProvider(syntaxNode), BabyDocStandardDocumentationProvider.Create());
@@ -27,7 +30,9 @@ namespace BabyDoc
             {
                 this.syntaxNode = syntaxNode;
             }
-
+            /// <summary>This method does [SummaryText]</summary>
+            /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+            /// <returns>[String]</returns>
             public override string SummaryText(ISymbol symbol)
             {
                 var accessors = this.syntaxNode.AccessorList.Accessors

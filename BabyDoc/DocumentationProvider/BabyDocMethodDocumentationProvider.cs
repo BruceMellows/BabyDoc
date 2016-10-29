@@ -12,6 +12,9 @@ namespace BabyDoc
 
     internal sealed class BabyDocMethodDocumentationProvider
     {
+        /// <summary>This method does [Create]</summary>
+        /// <param name="syntaxNode">[syntaxNode] of type [Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax]</param>
+        /// <returns>[IBabyDocDocumentationProvider]</returns>
         public static IBabyDocDocumentationProvider Create(MethodDeclarationSyntax syntaxNode)
         {
             return new BabyDocDocumentationProvider(new ActualProvider(syntaxNode), BabyDocStandardDocumentationProvider.Create());
@@ -25,7 +28,9 @@ namespace BabyDoc
             {
                 this.syntaxNode = syntaxNode;
             }
-
+            /// <summary>This method does [SummaryText]</summary>
+            /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+            /// <returns>[String]</returns>
             public override string SummaryText(ISymbol symbol)
             {
                 return string.Format(CultureInfo.InvariantCulture, "This method does [{0}]", symbol.Name);

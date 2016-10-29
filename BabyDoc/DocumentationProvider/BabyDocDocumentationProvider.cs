@@ -17,17 +17,23 @@ namespace BabyDoc
         {
             this.providers = providers.ToArray();
         }
-
+        /// <summary>This method does [ParameterText]</summary>
+        /// <param name="parameterSymbol">[parameterSymbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+        /// <returns>[String]</returns>
         public string ParameterText(ISymbol parameterSymbol)
         {
             return this.providers.Select(x => x.ParameterText(parameterSymbol)).FirstOrDefault(x => x != null);
         }
-
+        /// <summary>This method does [ReturnsText]</summary>
+        /// <param name="returnTypeSymbol">[returnTypeSymbol] of type [Microsoft.CodeAnalysis.ITypeSymbol]</param>
+        /// <returns>[String]</returns>
         public string ReturnsText(ITypeSymbol returnTypeSymbol)
         {
             return this.providers.Select(x => x.ReturnsText(returnTypeSymbol)).FirstOrDefault(x => x != null);
         }
-
+        /// <summary>This method does [SummaryText]</summary>
+        /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+        /// <returns>[String]</returns>
         public string SummaryText(ISymbol symbol)
         {
             return this.providers.Select(x => x.SummaryText(symbol)).FirstOrDefault(x => x != null);

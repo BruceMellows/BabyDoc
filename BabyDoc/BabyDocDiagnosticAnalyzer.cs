@@ -35,21 +35,27 @@ namespace BabyDoc
         private const string Category = "Documentation";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
-
+        /// <summary>Gets the [SupportedDiagnostics]</summary>
+        /// <returns>[ImmutableArray]</returns>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
-
+        /// <summary>This method does [Initialize]</summary>
+        /// <param name="context">[context] of type [Microsoft.CodeAnalysis.Diagnostics.AnalysisContext]</param>
+        /// <returns></returns>
         public override void Initialize(AnalysisContext context)
         {
             // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbolKindMethod, SymbolKind.Method);
             context.RegisterSymbolAction(AnalyzeSymbolKindProperty, SymbolKind.Property);
+            // FIXME - add constructor support
+            // FIXME - add field support
         }
 
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
         {
             var symbol = context.Symbol as IMethodSymbol;
             var syntaxNode = symbol != null ? symbol.FindNodes<MethodDeclarationSyntax>().SingleOrDefault() : null;
+            // FIXME - do not require modifier if interface
             if (syntaxNode != null
                 && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
             {
@@ -65,6 +71,7 @@ namespace BabyDoc
         {
             var symbol = context.Symbol as IPropertySymbol;
             var syntaxNode = symbol != null ? symbol.FindNodes<PropertyDeclarationSyntax>().SingleOrDefault() : null;
+            // FIXME - do not require modifier if interface
             if (syntaxNode != null
                 && syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword)))
             {
