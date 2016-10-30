@@ -21,6 +21,7 @@ namespace BabyDoc
             var root = node.Ancestors().LastOrDefault() ?? node;
             return root.GetText().ToString().Substring(span.Start, span.Length);
         }
+
         /// <summary>This method does [FindNodes]</summary>
         /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[IEnumerable]</returns>
@@ -32,6 +33,7 @@ namespace BabyDoc
                 .Select(x => x as T)
                 .Where(x => x != null);
         }
+
         /// <summary>This method does [GetNodes]</summary>
         /// <param name="node">[node] of type [Microsoft.CodeAnalysis.SyntaxNode]</param>
         /// <returns>[IEnumerable]</returns>

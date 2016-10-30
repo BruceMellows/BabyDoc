@@ -35,9 +35,11 @@ namespace BabyDoc
         private const string Category = "Documentation";
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+
         /// <summary>Gets the [SupportedDiagnostics]</summary>
         /// <returns>[ImmutableArray]</returns>
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
         /// <summary>This method does [Initialize]</summary>
         /// <param name="context">[context] of type [Microsoft.CodeAnalysis.Diagnostics.AnalysisContext]</param>
         /// <returns></returns>

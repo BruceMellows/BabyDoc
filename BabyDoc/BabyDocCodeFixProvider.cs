@@ -16,7 +16,6 @@ namespace BabyDoc
     using Microsoft.CodeAnalysis.CodeFixes;
     using Microsoft.CodeAnalysis.CodeActions;
     using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(BabyDocCodeFixProvider)), Shared]
     public class BabyDocCodeFixProvider : CodeFixProvider
@@ -24,17 +23,24 @@ namespace BabyDoc
         private const string title = "Code Documentation";
         private const string commentLeader = "/// ";
 
+        /// <summary>Gets the [FixableDiagnosticIds]</summary>
+        /// <returns>[ImmutableArray]</returns>
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(BabyDocDiagnosticAnalyzer.DiagnosticId); }
         }
 
+        /// <summary>This method does [GetFixAllProvider]</summary>
+        /// <returns>[FixAllProvider]</returns>
         public sealed override FixAllProvider GetFixAllProvider()
         {
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
             return WellKnownFixAllProviders.BatchFixer;
         }
 
+        /// <summary>This method does [RegisterCodeFixesAsync]</summary>
+        /// <param name="context">[context] of type [Microsoft.CodeAnalysis.CodeFixes.CodeFixContext]</param>
+        /// <returns>[Task]</returns>
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);

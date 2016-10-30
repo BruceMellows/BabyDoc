@@ -13,10 +13,13 @@ namespace BabyDoc
     {
         private readonly IBabyDocDocumentationProvider[] providers;
 
+        /// <summary>Constructor for [BabyDocDocumentationProvider]</summary>
+        /// <param name="providers">[providers] of type [params BabyDoc.IBabyDocDocumentationProvider[]]</param>
         public BabyDocDocumentationProvider(params IBabyDocDocumentationProvider[] providers)
         {
             this.providers = providers.ToArray();
         }
+
         /// <summary>This method does [ParameterText]</summary>
         /// <param name="parameterSymbol">[parameterSymbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[String]</returns>
@@ -24,6 +27,7 @@ namespace BabyDoc
         {
             return this.providers.Select(x => x.ParameterText(parameterSymbol)).FirstOrDefault(x => x != null);
         }
+
         /// <summary>This method does [ReturnsText]</summary>
         /// <param name="returnTypeSymbol">[returnTypeSymbol] of type [Microsoft.CodeAnalysis.ITypeSymbol]</param>
         /// <returns>[String]</returns>
@@ -31,6 +35,7 @@ namespace BabyDoc
         {
             return this.providers.Select(x => x.ReturnsText(returnTypeSymbol)).FirstOrDefault(x => x != null);
         }
+
         /// <summary>This method does [SummaryText]</summary>
         /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[String]</returns>

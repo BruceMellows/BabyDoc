@@ -24,10 +24,13 @@ namespace BabyDoc
         {
             private readonly VariableDeclaratorSyntax syntaxNode;
 
+            /// <summary>Constructor for [ActualProvider]</summary>
+            /// <param name="syntaxNode">[syntaxNode] of type [Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax]</param>
             public ActualProvider(VariableDeclaratorSyntax syntaxNode)
             {
                 this.syntaxNode = syntaxNode;
             }
+
             /// <summary>This method does [SummaryText]</summary>
             /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
             /// <returns>[String]</returns>

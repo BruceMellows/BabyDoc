@@ -17,6 +17,7 @@ namespace BabyDoc
         {
             return null;
         }
+
         /// <summary>This method does [ReturnsText]</summary>
         /// <param name="returnTypeSymbol">[returnTypeSymbol] of type [Microsoft.CodeAnalysis.ITypeSymbol]</param>
         /// <returns>[String]</returns>
@@ -24,6 +25,7 @@ namespace BabyDoc
         {
             return null;
         }
+
         /// <summary>This method does [SummaryText]</summary>
         /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[String]</returns>
