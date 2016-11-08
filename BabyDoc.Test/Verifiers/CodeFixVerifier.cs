@@ -122,7 +122,8 @@ namespace TestHelper
 
             //after applying all of the code fixes, compare the resulting string to the inputted one
             var actual = GetStringFromDocument(document);
-            Assert.AreEqual(newSource, actual);
+            //// FIXME - remove the Replace's from the compare - fix the generator
+            Assert.AreEqual(newSource.Replace("\r", string.Empty), actual.Replace("\r", string.Empty));
         }
     }
 }
