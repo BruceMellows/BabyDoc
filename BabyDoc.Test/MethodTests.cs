@@ -15,6 +15,7 @@ namespace BabyDoc.Test
         public void Private()
         {
             this.BabyDocTester(
+                null,
                 new[]
                 {
                     "private static void $Main$(string[] args){}"
@@ -26,6 +27,7 @@ namespace BabyDoc.Test
         public void MissingDocumentation()
         {
             this.BabyDocTester(
+                "Externally visible method '{0}' does not have a documentation comment",
                 new[]
                 {
                     "public static void $Main$(string[] args){}"
@@ -44,6 +46,7 @@ namespace BabyDoc.Test
         public void MissingParameters()
         {
             this.BabyDocTester(
+                "Externally visible method '{0}' does not have a documentation comment",
                 new[]
                 {
                     "/// <summary>This method is the entry point for the program</summary>",
@@ -64,6 +67,7 @@ namespace BabyDoc.Test
         public void MissingDocumentationWithAttribute()
         {
             this.BabyDocTester(
+                "Externally visible method '{0}' does not have a documentation comment",
                 new[]
                 {
                     "[Something]",
@@ -84,6 +88,7 @@ namespace BabyDoc.Test
         public void ReturnType()
         {
             this.BabyDocTester(
+                "Externally visible method '{0}' does not have a documentation comment",
                 new[]
                 {
                     "public static int $Main$(string[] args){}"

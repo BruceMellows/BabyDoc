@@ -117,16 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AnalyzerDescription" xml:space="preserve">
+  <data name="BabyDocMethodAnalyzerDescription" xml:space="preserve">
     <value>Method should have a documentation comment.</value>
-    <comment>An optional longer localizable description of the diagnostic.</comment>
   </data>
-  <data name="AnalyzerMessageFormat" xml:space="preserve">
+  <data name="BabyDocMethodAnalyzerMessageFormat" xml:space="preserve">
     <value>Externally visible method '{0}' does not have a documentation comment</value>
-    <comment>The format-able message the diagnostic displays.</comment>
   </data>
-  <data name="AnalyzerTitle" xml:space="preserve">
+  <data name="BabyDocMethodAnalyzerTitle" xml:space="preserve">
     <value>Externally visible method does not have a documentation comment</value>
-    <comment>The title of the diagnostic.</comment>
+  </data>
+  <data name="BabyDocPropertyAnalyzerDescription" xml:space="preserve">
+    <value>Property should have a documentation comment.</value>
+  </data>
+  <data name="BabyDocPropertyAnalyzerMessageFormat" xml:space="preserve">
+    <value>Externally visible property '{0}' does not have a documentation comment</value>
+  </data>
+  <data name="BabyDocPropertyAnalyzerTitle" xml:space="preserve">
+    <value>Externally visible property does not have a documentation comment</value>
   </data>
 </root>

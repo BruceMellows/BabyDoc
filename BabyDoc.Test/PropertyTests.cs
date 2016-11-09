@@ -15,6 +15,7 @@ namespace BabyDoc.Test
         public void Private()
         {
             this.BabyDocTester(
+                "Externally visible property '{0}' does not have a documentation comment",
                 new[]
                 {
                     "private static string $Text${ get; set; }"
@@ -26,6 +27,7 @@ namespace BabyDoc.Test
         public void MissingDocumentationGet()
         {
             this.BabyDocTester(
+                "Externally visible property '{0}' does not have a documentation comment",
                 new[]
                 {
                     "public static string $Text${ get; private set; }"
@@ -43,6 +45,7 @@ namespace BabyDoc.Test
         public void MissingDocumentationGetSet()
         {
             this.BabyDocTester(
+                "Externally visible property '{0}' does not have a documentation comment",
                 new[]
                 {
                     "public static string $Text${ get; set; }"

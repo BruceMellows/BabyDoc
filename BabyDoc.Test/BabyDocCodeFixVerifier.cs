@@ -26,7 +26,7 @@ namespace BabyDoc.Test
             return new BabyDocDiagnosticAnalyzer();
         }
 
-        protected void BabyDocTester(IEnumerable<string> inputLines, IEnumerable<string> outputLines)
+        protected void BabyDocTester(string messageFormat, IEnumerable<string> inputLines, IEnumerable<string> outputLines)
         {
             var doc = inputLines.ToArray();
             var line = doc.Length + 1;
@@ -45,7 +45,7 @@ namespace BabyDoc.Test
                   new DiagnosticResult
                   {
                       Id = BabyDocDiagnosticAnalyzer.DiagnosticId,
-                      Message = String.Format("Externally visible method '{0}' does not have a documentation comment", target),
+                      Message = String.Format(messageFormat, target),
                       Severity = DiagnosticSeverity.Warning,
                       Locations = new[]
                       {

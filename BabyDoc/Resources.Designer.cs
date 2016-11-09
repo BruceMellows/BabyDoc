@@ -64,27 +64,54 @@ namespace BabyDoc {
         /// <summary>
         ///   Looks up a localized string similar to Method should have a documentation comment..
         /// </summary>
-        internal static string AnalyzerDescription {
+        internal static string BabyDocMethodAnalyzerDescription {
             get {
-                return ResourceManager.GetString("AnalyzerDescription", resourceCulture);
+                return ResourceManager.GetString("BabyDocMethodAnalyzerDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Externally visible method &apos;{0}&apos; does not have a documentation comment.
         /// </summary>
-        internal static string AnalyzerMessageFormat {
+        internal static string BabyDocMethodAnalyzerMessageFormat {
             get {
-                return ResourceManager.GetString("AnalyzerMessageFormat", resourceCulture);
+                return ResourceManager.GetString("BabyDocMethodAnalyzerMessageFormat", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Externally visible method does not have a documentation comment.
         /// </summary>
-        internal static string AnalyzerTitle {
+        internal static string BabyDocMethodAnalyzerTitle {
             get {
-                return ResourceManager.GetString("AnalyzerTitle", resourceCulture);
+                return ResourceManager.GetString("BabyDocMethodAnalyzerTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property should have a documentation comment..
+        /// </summary>
+        internal static string BabyDocPropertyAnalyzerDescription {
+            get {
+                return ResourceManager.GetString("BabyDocPropertyAnalyzerDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Externally visible property &apos;{0}&apos; does not have a documentation comment.
+        /// </summary>
+        internal static string BabyDocPropertyAnalyzerMessageFormat {
+            get {
+                return ResourceManager.GetString("BabyDocPropertyAnalyzerMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Externally visible property does not have a documentation comment.
+        /// </summary>
+        internal static string BabyDocPropertyAnalyzerTitle {
+            get {
+                return ResourceManager.GetString("BabyDocPropertyAnalyzerTitle", resourceCulture);
             }
         }
     }

@@ -29,16 +29,29 @@ namespace BabyDoc
 
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
         // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization
-        private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
-        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
-        private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
         private const string Category = "Documentation";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor MethodRule = new DiagnosticDescriptor(
+            DiagnosticId,
+            new LocalizableResourceString(nameof(Resources.BabyDocMethodAnalyzerTitle), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(Resources.BabyDocMethodAnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources)),
+            Category,
+            DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: new LocalizableResourceString(nameof(Resources.BabyDocMethodAnalyzerDescription), Resources.ResourceManager, typeof(Resources)),
+            customTags: new[] { nameof(MethodRule) });
+
+        private static DiagnosticDescriptor PropertyRule = new DiagnosticDescriptor(
+            DiagnosticId,
+            new LocalizableResourceString(nameof(Resources.BabyDocPropertyAnalyzerTitle), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(Resources.BabyDocPropertyAnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources)),
+            Category,
+            DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: new LocalizableResourceString(nameof(Resources.BabyDocPropertyAnalyzerDescription), Resources.ResourceManager, typeof(Resources)),
+            customTags: new[] { nameof(PropertyRule) });
 
         /// <summary>Gets the [SupportedDiagnostics]</summary>
         /// <returns>[ImmutableArray]</returns>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(MethodRule, PropertyRule); } }
 
         /// <summary>This method does [Initialize]</summary>
         /// <param name="context">[context] of type [Microsoft.CodeAnalysis.Diagnostics.AnalysisContext]</param>
@@ -49,8 +62,6 @@ namespace BabyDoc
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbolKindMethod, SymbolKind.Method);
             context.RegisterSymbolAction(AnalyzeSymbolKindProperty, SymbolKind.Property);
-            // FIXME - add field support
-            ////context.RegisterSymbolAction(AnalyzeSymbolKindField, SymbolKind.Field);
         }
 
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
@@ -66,7 +77,8 @@ namespace BabyDoc
                     AnalyzeWrappedSymbol(
                         context,
                         new BabyDocDiagnosticAdapter(methodNode, () => symbol.Parameters, () => symbol.ReturnType),
-                        BabyDocMethodDocumentationProvider.Create(methodNode));
+                        BabyDocMethodDocumentationProvider.Create(methodNode),
+                        MethodRule);
                 }
             }
             else
@@ -79,7 +91,8 @@ namespace BabyDoc
                     AnalyzeWrappedSymbol(
                         context,
                         new BabyDocDiagnosticAdapter(constructorNode, () => symbol.Parameters, () => symbol.ReturnType),
-                        BabyDocConstructorDocumentationProvider.Create(constructorNode));
+                        BabyDocConstructorDocumentationProvider.Create(constructorNode),
+                        MethodRule);
                 }
             }
         }
@@ -95,30 +108,16 @@ namespace BabyDoc
                 AnalyzeWrappedSymbol(
                     context,
                     new BabyDocDiagnosticAdapter(syntaxNode, () => symbol.Parameters, () => symbol.Type),
-                    BabyDocPropertyDocumentationProvider.Create(syntaxNode));
-            }
-        }
-
-        private static void AnalyzeSymbolKindField(SymbolAnalysisContext context)
-        {
-            //// FIXME - a bit of a mess
-            var symbol = context.Symbol as IFieldSymbol;
-            var nodes = symbol.FindNodes<SyntaxNode>().ToArray();
-            var syntaxNode = symbol != null ? symbol.FindNodes<VariableDeclaratorSyntax>().SingleOrDefault() : null;
-            if (syntaxNode != null
-                /*&& syntaxNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))*/)
-            {
-                AnalyzeWrappedSymbol(
-                    context,
-                    new BabyDocDiagnosticAdapter(syntaxNode, () => Enumerable.Empty<ISymbol>(), () => symbol.Type),
-                    BabyDocFieldDocumentationProvider.Create(syntaxNode));
+                    BabyDocPropertyDocumentationProvider.Create(syntaxNode),
+                    PropertyRule);
             }
         }
 
         private static void AnalyzeWrappedSymbol(
             SymbolAnalysisContext context,
             IBabyDocDiagnosticAdapter diagnosticAdapter,
-            IBabyDocDocumentationProvider documentationProvider)
+            IBabyDocDocumentationProvider documentationProvider,
+            DiagnosticDescriptor diagnosticDescriptor)
         {
             var syntaxNode = diagnosticAdapter.SyntaxNode;
 
@@ -219,7 +218,7 @@ namespace BabyDoc
                 // add diagnostic for unexpected documentation summary
                 context.ReportDiagnostic(
                     Diagnostic.Create(
-                        Rule,
+                        diagnosticDescriptor,
                         context.Symbol.Locations[0],
                         new[] { Tuple.Create(ElementNameComment, newCommentXmlText) }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
                         context.Symbol.Name));
