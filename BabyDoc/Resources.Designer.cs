@@ -62,6 +62,33 @@ namespace BabyDoc {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Constructor should have a documentation comment..
+        /// </summary>
+        internal static string BabyDocConstructorAnalyzerDescription {
+            get {
+                return ResourceManager.GetString("BabyDocConstructorAnalyzerDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Externally visible constructor for &apos;{0}&apos; does not have a documentation comment.
+        /// </summary>
+        internal static string BabyDocConstructorAnalyzerMessageFormat {
+            get {
+                return ResourceManager.GetString("BabyDocConstructorAnalyzerMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Externally visible constructor does not have a documentation comment.
+        /// </summary>
+        internal static string BabyDocConstructorAnalyzerTitle {
+            get {
+                return ResourceManager.GetString("BabyDocConstructorAnalyzerTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Method should have a documentation comment..
         /// </summary>
         internal static string BabyDocMethodAnalyzerDescription {

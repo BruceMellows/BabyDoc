@@ -102,5 +102,22 @@ namespace BabyDoc.Test
                     "public static int Main(string[] args){}"
                 });
         }
+
+        [TestMethod]
+        public void Constructor()
+        {
+            this.BabyDocTester(
+                "Externally visible constructor for '{0}' does not have a documentation comment",
+                new[]
+                {
+                    "public $TestClass$(){}"
+                },
+                new[]
+                {
+                    "", //// FIXME = remove this line
+                    "/// <summary>Constructor for [TestClass]</summary>",
+                    "public TestClass(){}"
+                });
+        }
     }
 }

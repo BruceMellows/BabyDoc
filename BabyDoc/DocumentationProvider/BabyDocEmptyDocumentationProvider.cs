@@ -10,6 +10,14 @@ namespace BabyDoc
 
     internal class BabyDocEmptyDocumentationProvider : IBabyDocDocumentationProvider
     {
+        /// <summary>This method does [SymbolName]</summary>
+        /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+        /// <returns>[String]</returns>
+        public virtual string SymbolName(ISymbol symbol)
+        {
+            return null;
+        }
+
         /// <summary>This method does [ParameterText]</summary>
         /// <param name="parameterSymbol">[parameterSymbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[String]</returns>

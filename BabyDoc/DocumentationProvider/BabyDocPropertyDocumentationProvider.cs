@@ -21,6 +21,7 @@ namespace BabyDoc
         {
             return new BabyDocDocumentationProvider(
                 new ActualProvider(syntaxNode),
+                BabyDocBasicSymbolNameDocumentationProvider.Create(),
                 BabyDocReturnsTextDocumentationProvider.Create(),
                 BabyDocParameterTextDocumentationProvider.Create());
         }

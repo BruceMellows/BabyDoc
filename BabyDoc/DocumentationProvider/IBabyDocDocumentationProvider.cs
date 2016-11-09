@@ -10,6 +10,8 @@ namespace BabyDoc
 
     internal interface IBabyDocDocumentationProvider
     {
+        string SymbolName(ISymbol symbol);
+
         string SummaryText(ISymbol symbol);
 
         string ParameterText(ISymbol parameterSymbol);

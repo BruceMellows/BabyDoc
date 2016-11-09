@@ -31,6 +31,15 @@ namespace BabyDoc
         // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization
         private const string Category = "Documentation";
 
+        private static DiagnosticDescriptor ConstructorRule = new DiagnosticDescriptor(
+            DiagnosticId,
+            new LocalizableResourceString(nameof(Resources.BabyDocConstructorAnalyzerTitle), Resources.ResourceManager, typeof(Resources)),
+            new LocalizableResourceString(nameof(Resources.BabyDocConstructorAnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources)),
+            Category,
+            DiagnosticSeverity.Warning, isEnabledByDefault: true,
+            description: new LocalizableResourceString(nameof(Resources.BabyDocConstructorAnalyzerDescription), Resources.ResourceManager, typeof(Resources)),
+            customTags: new[] { nameof(ConstructorRule) });
+
         private static DiagnosticDescriptor MethodRule = new DiagnosticDescriptor(
             DiagnosticId,
             new LocalizableResourceString(nameof(Resources.BabyDocMethodAnalyzerTitle), Resources.ResourceManager, typeof(Resources)),
@@ -51,7 +60,13 @@ namespace BabyDoc
 
         /// <summary>Gets the [SupportedDiagnostics]</summary>
         /// <returns>[ImmutableArray]</returns>
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(MethodRule, PropertyRule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                return ImmutableArray.Create(ConstructorRule, MethodRule, PropertyRule);
+            }
+        }
 
         /// <summary>This method does [Initialize]</summary>
         /// <param name="context">[context] of type [Microsoft.CodeAnalysis.Diagnostics.AnalysisContext]</param>
@@ -67,6 +82,21 @@ namespace BabyDoc
         private static void AnalyzeSymbolKindMethod(SymbolAnalysisContext context)
         {
             var symbol = context.Symbol as IMethodSymbol;
+
+            var constructorNode = symbol != null ? symbol.FindNodes<ConstructorDeclarationSyntax>().SingleOrDefault() : null;
+            if (constructorNode != null
+                && (symbol.ContainingType.TypeKind == TypeKind.Interface
+                    || constructorNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))))
+            {
+                AnalyzeWrappedSymbol(
+                    context,
+                    new BabyDocDiagnosticAdapter(constructorNode, () => symbol.Parameters, () => symbol.ReturnType),
+                    BabyDocConstructorDocumentationProvider.Create(constructorNode),
+                    ConstructorRule);
+
+                return;
+            }
+
             var methodNode = symbol != null ? symbol.FindNodes<MethodDeclarationSyntax>().SingleOrDefault() : null;
             if (methodNode != null)
             {
@@ -80,20 +110,8 @@ namespace BabyDoc
                         BabyDocMethodDocumentationProvider.Create(methodNode),
                         MethodRule);
                 }
-            }
-            else
-            {
-                var constructorNode = symbol != null ? symbol.FindNodes<ConstructorDeclarationSyntax>().SingleOrDefault() : null;
-                if (constructorNode != null
-                    && (symbol.ContainingType.TypeKind == TypeKind.Interface
-                        || constructorNode.Modifiers.Any(x => x.IsKind(SyntaxKind.PublicKeyword) || x.IsKind(SyntaxKind.InternalKeyword))))
-                {
-                    AnalyzeWrappedSymbol(
-                        context,
-                        new BabyDocDiagnosticAdapter(constructorNode, () => symbol.Parameters, () => symbol.ReturnType),
-                        BabyDocConstructorDocumentationProvider.Create(constructorNode),
-                        MethodRule);
-                }
+
+                return;
             }
         }
 
@@ -221,7 +239,7 @@ namespace BabyDoc
                         diagnosticDescriptor,
                         context.Symbol.Locations[0],
                         new[] { Tuple.Create(ElementNameComment, newCommentXmlText) }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
-                        context.Symbol.Name));
+                        documentationProvider.SymbolName(context.Symbol)));
             }
         }
 

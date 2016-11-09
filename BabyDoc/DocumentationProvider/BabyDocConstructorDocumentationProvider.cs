@@ -17,7 +17,8 @@ namespace BabyDoc
         /// <returns>[IBabyDocDocumentationProvider]</returns>
         public static IBabyDocDocumentationProvider Create(ConstructorDeclarationSyntax syntaxNode)
         {
-            return new BabyDocDocumentationProvider(new ActualProvider(syntaxNode),
+            return new BabyDocDocumentationProvider(
+                new ActualProvider(syntaxNode),
                 BabyDocParameterTextDocumentationProvider.Create());
         }
 
@@ -30,6 +31,15 @@ namespace BabyDoc
             public ActualProvider(ConstructorDeclarationSyntax syntaxNode)
             {
                 this.syntaxNode = syntaxNode;
+            }
+
+            /// <summary>This method does [SymbolName]</summary>
+            /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+            /// <returns>[String]</returns>
+            public override string SymbolName(ISymbol symbol)
+            {
+                var methodSymbol = symbol as IMethodSymbol;
+                return methodSymbol != null ? methodSymbol.ContainingType.Name : symbol.Name;
             }
 
             /// <summary>This method does [SummaryText]</summary>

@@ -20,6 +20,14 @@ namespace BabyDoc
             this.providers = providers.ToArray();
         }
 
+        /// <summary>This method does [SymbolName]</summary>
+        /// <param name="symbol">[symbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
+        /// <returns>[String]</returns>
+        public string SymbolName(ISymbol symbol)
+        {
+            return this.providers.Select(x => x.SymbolName(symbol)).FirstOrDefault(x => x != null);
+        }
+
         /// <summary>This method does [ParameterText]</summary>
         /// <param name="parameterSymbol">[parameterSymbol] of type [Microsoft.CodeAnalysis.ISymbol]</param>
         /// <returns>[String]</returns>
