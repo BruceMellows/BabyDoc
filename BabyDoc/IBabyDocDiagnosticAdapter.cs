@@ -17,5 +17,7 @@ namespace BabyDoc
         IEnumerable<ISymbol> Parameters { get; }
 
         ITypeSymbol ReturnType { get; }
+
+        bool IsFirstChild { get; }
     }
 }

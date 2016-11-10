@@ -66,8 +66,8 @@ namespace BabyDoc
 
             var indentText = firstToken.LeadingTrivia.Where(x => x.Kind() == SyntaxKind.WhitespaceTrivia).LastOrDefault();
             var documentationCommentLeaderText = (indentText != null ? indentText.ToFullString() : string.Empty) + commentLeader;
-            var commentLinesFromProperty = diagnosticProperties.ContainsKey(BabyDocDiagnosticAnalyzer.ElementNameComment)
-                ? diagnosticProperties[BabyDocDiagnosticAnalyzer.ElementNameComment].Replace("\r", string.Empty).Split('\n').Select(x => x.Trim()).ToArray()
+            var commentLinesFromProperty = diagnosticProperties.ContainsKey(BabyDocDiagnosticAnalyzer.PropertyKeyComment)
+                ? diagnosticProperties[BabyDocDiagnosticAnalyzer.PropertyKeyComment].Replace("\r", string.Empty).Split('\n').Select(x => x.Trim()).ToArray()
                 : null;
             if (commentLinesFromProperty == null)
             {
@@ -83,11 +83,14 @@ namespace BabyDoc
                         .Select(x => documentationCommentLeaderText + x))
                 + Environment.NewLine + indentText;
 
+            var isFirstChild = diagnosticProperties.ContainsKey(BabyDocDiagnosticAnalyzer.PropertyKeyIsFirstChild)
+                ? bool.Parse(diagnosticProperties[BabyDocDiagnosticAnalyzer.PropertyKeyIsFirstChild])
+                : false;
+            var leadingGap = isFirstChild ? string.Empty : Environment.NewLine;
             var newMethodDeclaration = syntaxNode.ReplaceToken(
                 firstToken,
                 firstToken.WithLeadingTrivia(
-                    SyntaxFactory.ParseLeadingTrivia(documentationCommentTriviaText)
-                    .Insert(0, SyntaxFactory.LineFeed)));
+                    SyntaxFactory.ParseLeadingTrivia(leadingGap + documentationCommentTriviaText)));
 
             return getRootTask.ContinueWith(t => document.WithSyntaxRoot(t.Result.ReplaceNode(syntaxNode, newMethodDeclaration)));
         }

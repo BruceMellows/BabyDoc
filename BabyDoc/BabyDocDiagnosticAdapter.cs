@@ -22,11 +22,14 @@ namespace BabyDoc
 
         private ITypeSymbol returnType;
 
+        private bool isFirstChild;
+
         public BabyDocDiagnosticAdapter(CSharpSyntaxNode syntaxNode, Func<IEnumerable<ISymbol>> parametersCallback, Func<ITypeSymbol> returnTypeCallback)
         {
             this.SyntaxNode = syntaxNode;
             this.parametersCallback = parametersCallback;
             this.returnTypeCallback = returnTypeCallback;
+            this.isFirstChild = syntaxNode.Parent.ChildNodes().First() == syntaxNode;
         }
 
         public CSharpSyntaxNode SyntaxNode { get; private set; }
@@ -44,6 +47,14 @@ namespace BabyDoc
             get
             {
                 return this.returnType ?? (this.returnType = this.returnTypeCallback());
+            }
+        }
+
+        public bool IsFirstChild
+        {
+            get
+            {
+                return this.isFirstChild;
             }
         }
     }

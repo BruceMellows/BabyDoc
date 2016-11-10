@@ -23,6 +23,8 @@ namespace BabyDoc
         private const string ElementNameSummary = "summary";
         private const string ElementNameReturns = "returns";
         public const string ElementNameComment = "comment";
+        public const string PropertyKeyComment = "comment";
+        public const string PropertyKeyIsFirstChild = "isFirstChild";
 
         private static Regex singleLineDocumentationCommentTriviaRegex = new Regex(@"^(\s*///\s*(?<content>.+))+$", RegexOptions.CultureInvariant);
         public const string DiagnosticId = "BabyDoc";
@@ -238,7 +240,11 @@ namespace BabyDoc
                     Diagnostic.Create(
                         diagnosticDescriptor,
                         context.Symbol.Locations[0],
-                        new[] { Tuple.Create(ElementNameComment, newCommentXmlText) }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
+                        new[]
+                        {
+                            Tuple.Create(PropertyKeyComment, newCommentXmlText),
+                            Tuple.Create(PropertyKeyIsFirstChild, diagnosticAdapter.IsFirstChild.ToString())
+                        }.ToDictionary(x => x.Item1, x => x.Item2).ToImmutableDictionary(),
                         documentationProvider.SymbolName(context.Symbol)));
             }
         }

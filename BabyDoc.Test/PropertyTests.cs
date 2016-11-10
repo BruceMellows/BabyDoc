@@ -34,7 +34,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>Gets the [Text]</summary>",
                     "/// <returns>The [Text] of type [String]</returns>",
                     "public static string Text{ get; private set; }"
@@ -52,7 +51,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>Gets or sets the [Text]</summary>",
                     "/// <returns>The [Text] of type [String]</returns>",
                     "public static string Text{ get; set; }"

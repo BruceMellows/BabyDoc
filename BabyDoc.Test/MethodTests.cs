@@ -34,7 +34,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>This method does [Main]</summary>",
                     "/// <param name=\"args\">[args] of type [string[]]</param>",
                     "/// <returns></returns>",
@@ -55,7 +54,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>This method is the entry point for the program</summary>",
                     "/// <param name=\"args\">[args] of type [string[]]</param>",
                     "/// <returns></returns>",
@@ -75,7 +73,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>This method does [Main]</summary>",
                     "/// <param name=\"args\">[args] of type [string[]]</param>",
                     "/// <returns></returns>",
@@ -95,11 +92,37 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>This method does [Main]</summary>",
                     "/// <param name=\"args\">[args] of type [string[]]</param>",
                     "/// <returns>[Int32]</returns>",
                     "public static int Main(string[] args){}"
+                });
+        }
+
+        [TestMethod]
+        public void SecondChild()
+        {
+            this.BabyDocTester(
+                "Externally visible method '{0}' does not have a documentation comment",
+                new[]
+                {
+                    "/// <summary>This method does [Main]</summary>",
+                    "/// <param name=\"args\">[args] of type [string[]]</param>",
+                    "/// <returns>[Int32]</returns>",
+                    "public static int Main(string[] args){}",
+                    "public static int $NoCatchMain$(string[] args){}"
+                },
+                new[]
+                {
+                    "/// <summary>This method does [Main]</summary>",
+                    "/// <param name=\"args\">[args] of type [string[]]</param>",
+                    "/// <returns>[Int32]</returns>",
+                    "public static int Main(string[] args){}",
+                    "",
+                    "/// <summary>This method does [NoCatchMain]</summary>",
+                    "/// <param name=\"args\">[args] of type [string[]]</param>",
+                    "/// <returns>[Int32]</returns>",
+                    "public static int NoCatchMain(string[] args){}"
                 });
         }
 
@@ -114,7 +137,6 @@ namespace BabyDoc.Test
                 },
                 new[]
                 {
-                    "", //// FIXME = remove this line
                     "/// <summary>Constructor for [TestClass]</summary>",
                     "public TestClass(){}"
                 });
