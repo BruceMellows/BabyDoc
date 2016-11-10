@@ -9,6 +9,7 @@ namespace BabyDoc
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
+    using System;
     using System.Globalization;
     using System.Linq;
 
@@ -22,7 +23,6 @@ namespace BabyDoc
             return new BabyDocDocumentationProvider(
                 new ActualProvider(syntaxNode),
                 BabyDocBasicSymbolNameDocumentationProvider.Create(),
-                BabyDocReturnsTextDocumentationProvider.Create(),
                 BabyDocParameterTextDocumentationProvider.Create());
         }
 
@@ -48,6 +48,16 @@ namespace BabyDoc
                 var hasGet = accessors.Any(x => x.IsKind(SyntaxKind.GetAccessorDeclaration));
                 var hasSet = accessors.Any(x => x.IsKind(SyntaxKind.SetAccessorDeclaration));
                 return string.Format(CultureInfo.InvariantCulture, (!hasGet || !hasSet) ? !hasGet ? "Sets the [{0}]" : "Gets the [{0}]" : "Gets or sets the [{0}]", symbol.Name);
+            }
+
+            /// <summary>This method does [ReturnsText]</summary>
+            /// <param name="returnTypeSymbol">[returnTypeSymbol] of type [Microsoft.CodeAnalysis.ITypeSymbol]</param>
+            /// <returns>[String]</returns>
+            public override string ReturnsText(ITypeSymbol returnTypeSymbol)
+            {
+                return returnTypeSymbol.Name != null && !returnTypeSymbol.Name.Equals("void", StringComparison.OrdinalIgnoreCase)
+                        ? string.Format(CultureInfo.InvariantCulture, "The [{0}] of type [{1}]", this.syntaxNode.Identifier.Text, returnTypeSymbol.Name)
+                        : string.Empty;
             }
         }
     }
